@@ -74,6 +74,7 @@ def main():
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,))])
 
+
     # fetch and load training data
     trainset = datasets.KMNIST(root='./data', train=True, download=True, transform=transform)
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=False)

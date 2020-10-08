@@ -10,12 +10,12 @@ class NetLin(nn.Module):
     # linear function followed by log_softmax
     def __init__(self):
         super(NetLin, self).__init__()
-        self.linear = torch.nn.Linear(28, 10)
+        self.fc1 = nn.Linear(28, 1)
 
     def forward(self, x):
-        input_sum = self.linear(x)
-        output = F.log_softmax(input=input_sum)
-        return output
+        output = self.fc1(x)
+        F.log_softmax(input=output, dim=1)
+        return output.view(output.size(0), -1)
 
 class NetFull(nn.Module):
     # two fully connected tanh layers followed by log softmax
