@@ -16,6 +16,8 @@ def train(net, train_loader, optimizer):
     for batch_id, (data,target) in enumerate(train_loader):
         optimizer.zero_grad()    # zero the gradients
         output = net(data)       # apply network
+        print(output)
+        print(target)
         loss = F.binary_cross_entropy(output,target)
         loss.backward()          # compute gradients
         optimizer.step()         # update weights
