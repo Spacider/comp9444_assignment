@@ -16,9 +16,7 @@ def train(net, train_loader, optimizer):
     for batch_id, (data,target) in enumerate(train_loader):
         optimizer.zero_grad()    # zero the gradients
         output = net(data)       # apply network
-        print(output)
-        print(target)
-        loss = F.binary_cross_entropy(output,target)
+        loss = F.binary_cross_entropy(output, target)
         loss.backward()          # compute gradients
         optimizer.step()         # update weights
         pred = (output >= 0.5).float()
@@ -70,6 +68,7 @@ full_target = data[:,num_input:num_input+1]
 
 train_dataset = torch.utils.data.TensorDataset(full_input,full_target)
 train_loader  = torch.utils.data.DataLoader(train_dataset,batch_size=97)
+# train_loader  = torch.utils.data.DataLoader(train_dataset,batch_size=2048)
 
 # choose network architecture
 if args.net == 'polar':
