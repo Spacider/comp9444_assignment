@@ -68,7 +68,7 @@ def main():
 
     device = torch.device('cuda' if use_cuda else 'cpu')
 
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 8, 'pin_memory': True} if use_cuda else {}
 
     # define a transform to normalize the data
     transform = transforms.Compose([transforms.ToTensor(),
