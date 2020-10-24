@@ -33,7 +33,7 @@ class PolarNet(torch.nn.Module):
 
 class RawNet(torch.nn.Module):
     def __init__(self, num_hid):
-        super(RawNet, self).__init__()
+        super(RawNet, self).__init__()gi
         # INSERT CODE HERE
 
     def forward(self, input):
