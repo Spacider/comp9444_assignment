@@ -17,17 +17,12 @@ class PolarNet(torch.nn.Module):
         super(PolarNet, self).__init__()
         self.layer1 = nn.Linear(2, num_hid)
         self.layer2 = nn.Linear(num_hid, 1)
-        self.attempt = 0
 
     def forward(self, input):
         # print(input)  #([97, 2])
-        if self.attempt == 0:
-            r = torch.norm(input, p=2, dim=1)
-            a = torch.atan2(input[:, 1], input[:, 0])
-            input_polar = torch.cat((r, a), 0).view(97, 2)
-            self.attempt += 1
-        else:
-            input_polar = input
+        r = torch.sqrt(input[:, 0] * input[:, 0] + input[:, 1] * input[:, 1]).view(-1, 1)
+        a = torch.atan2(input[:, 1], input[:, 0]).view(-1, 1)
+        input_polar = torch.cat((r, a), 1).view(-1, 2)
 
         self.hid1 = torch.tanh(self.layer1(input_polar))
         output = self.layer2(self.hid1)
@@ -38,19 +33,14 @@ class PolarNet(torch.nn.Module):
 class RawNet(torch.nn.Module):
     def __init__(self, num_hid):
         super(RawNet, self).__init__()
-        self.layer1 = nn.Linear(2, num_hid)
-        self.layer2 = nn.Linear(num_hid, num_hid)
-        self.layer3 = nn.Linear(num_hid, 1)
-        self.hid1 = None
-        self.hid2 = None
+        self.layer1 = nn.Linear(2, num_hid , True)
+        self.layer2 = nn.Linear(num_hid, num_hid, True)
+        self.layer3 = nn.Linear(num_hid, 1, True)
 
     def forward(self, input):
-
-        self.hid1 = torch.tanh(self.layer1(input))
-        self.hid2 = torch.tanh(self.layer2(self.hid1))
-        output = self.layer3(self.hid2)
-
-        output = torch.sigmoid(output)
+        self.hid1 = torch.relu(self.layer1(input))
+        self.hid2 = torch.relu(self.layer2(self.hid1))
+        output = torch.sigmoid(self.layer3(self.hid2))
         return output
 
 
@@ -62,6 +52,7 @@ def graph_hidden(net, layer, node):
     # print(layer)
     # print("------------------node----------------")
     # print(node)
+
 
     xrange = torch.arange(start=-7,end=7.1,step=0.01,dtype=torch.float32)
     yrange = torch.arange(start=-6.6,end=6.7,step=0.01,dtype=torch.float32)

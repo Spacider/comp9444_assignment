@@ -45,13 +45,26 @@ class NetConv(nn.Module):
     # all using relu, followed by log_softmax
     def __init__(self):
         super(NetConv, self).__init__()
-        self.conv1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5, padding=2),
-                                   nn.ReLU(),
-                                   nn.MaxPool2d(kernel_size=2))
-        self.conv2 = nn.Sequential(nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=2),
-                                   nn.ReLU(),
-                                   nn.MaxPool2d(kernel_size=2))
-        self.Linear = nn.Linear(32 * 7 * 7, 10)
+        self.conv1 = nn.Sequential(
+                                    nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5, padding=2),  # if use maxpooling and padding
+                                    # nn.Conv2d(in_channels=1, out_channels=64, kernel_size=5, padding=2),  # if use maxpooling and padding then change the in_channels and out_channels
+                                    # nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5), # if not use padding
+                                    nn.ReLU(),
+                                    nn.MaxPool2d(kernel_size=2) # if use maxpooling
+                                    )
+        self.conv2 = nn.Sequential(
+                                    nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=2),  # if use maxpooling and padding
+                                    # nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, padding=2),  # if use maxpooling and padding then change the in_channels and out_channels
+                                    # nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5), # if not use padding
+                                    nn.ReLU(),
+                                    nn.MaxPool2d(kernel_size=2)
+                                    )
+
+        self.Linear = nn.Linear(32 * 7 * 7, 10)  # if use maxpooling and padding
+        # self.Linear = nn.Linear(32 * 28 * 28, 10) # if not use maxpooling
+        # self.Linear = nn.Linear(32 * 4 * 4, 10)  # if not use padding
+        # self.Linear = nn.Linear(128 * 7 * 7, 10) # if use maxpooling and padding then change the in_channels and out_channels
+
 
 
     def forward(self, x):
