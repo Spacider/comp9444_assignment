@@ -38,8 +38,8 @@ class RawNet(torch.nn.Module):
         self.layer3 = nn.Linear(num_hid, 1, True)
 
     def forward(self, input):
-        self.hid1 = torch.relu(self.layer1(input))
-        self.hid2 = torch.relu(self.layer2(self.hid1))
+        self.hid1 = torch.tanh(self.layer1(input))
+        self.hid2 = torch.tanh(self.layer2(self.hid1))
         output = torch.sigmoid(self.layer3(self.hid2))
         return output
 
