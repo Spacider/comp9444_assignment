@@ -2,15 +2,13 @@
 # COMP9444, CSE, UNSW
 
 from __future__ import print_function
-import torch
 import torch.utils.data
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-import numpy as np
 import argparse
 
-from encoder_model import EncModel, plot_hidden
-from encoder import star16, heart18, target1, target2
+from asmt1.encoder_model import EncModel, plot_hidden
+from asmt1.encoder import star16, heart18, target1, target2
 
 # command-line arguments
 parser = argparse.ArgumentParser()

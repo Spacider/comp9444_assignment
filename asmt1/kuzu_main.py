@@ -4,13 +4,12 @@
 from __future__ import print_function
 import argparse
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import sklearn.metrics as metrics
 import numpy as np
 from torchvision import datasets, transforms
-from kuzu import NetLin, NetFull, NetConv
+from asmt1.kuzu import NetLin, NetFull, NetConv
     
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()

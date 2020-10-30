@@ -5,7 +5,7 @@
 # exclude patterns (uncomment them if you want to use them):
 # *.[oa]
 # *~
-/data
+/asmt1/data
 
 model.ckpt
 /.idea

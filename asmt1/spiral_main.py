@@ -5,10 +5,9 @@ import torch
 import torch.utils.data
 import torch.nn.functional as F
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import argparse
-from spiral import PolarNet, RawNet, graph_hidden
+from asmt1.spiral import PolarNet, RawNet, graph_hidden
 
 def train(net, train_loader, optimizer):
     total=0
