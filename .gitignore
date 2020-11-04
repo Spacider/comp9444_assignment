@@ -11,3 +11,6 @@ model.ckpt
 /.idea
 
 .xml
+
+asmt2/
+/.vector_cache/
