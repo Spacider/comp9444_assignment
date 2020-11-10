@@ -80,7 +80,7 @@ stopWords = {'ourselves', 'hers', 'between', 'yourself', 'but', 'again', 'there'
              'has', 'just', 'where', 'too', 'only', 'myself', 'which', 'those', 'i', 'after',
              'few', 'whom', 't', 'being', 'if', 'theirs', 'my', 'against', 'a', 'by', 'doing',
              'it', 'how', 'further', 'was', 'here', 'than'}
-wordVectors_dim = 50
+wordVectors_dim = 300
 wordVectors = GloVe(name='6B', dim=wordVectors_dim) # max 300 dim
 
 ################################################################################
@@ -99,8 +99,6 @@ def convertNetOutput(ratingOutput, categoryOutput):
     # convert float to integer
     ratingOutput = torch.argmax(torch.round(F.log_softmax(ratingOutput, dim=1)), dim=1)
     categoryOutput = torch.argmax(torch.round(F.log_softmax(categoryOutput, dim=1)), dim=1)
-    print(ratingOutput)
-    print(categoryOutput)
     return ratingOutput, categoryOutput
 
 ################################################################################
@@ -118,17 +116,26 @@ class network(tnn.Module):
 
     def __init__(self):
         super(network, self).__init__()
-        self.LSTM = tnn.LSTM(wordVectors_dim, 50, num_layers=2, batch_first=True, bidirectional=True, dropout=0.5)
-        self.FC1_1 = tnn.Linear(200, 2)
-        self.FC2_1 = tnn.Linear(200, 100)
-        self.FC2_2 = tnn.Linear(100, 5)
+        self.LSTM = tnn.LSTM(wordVectors_dim, 300, num_layers=2, batch_first=True, bidirectional=True, dropout=0.5)
+        self.FC1_1 = tnn.Linear(1200, 600)
+        self.FC1_2 = tnn.Linear(600, 300)
+        self.FC1_3 = tnn.Linear(300, 2)
+        self.FC2_1 = tnn.Linear(1200, 500)
+        self.FC2_2 = tnn.Linear(500, 200)
+        self.FC2_3 = tnn.Linear(200, 5)
 
     def forward(self, input, length):
-        output, (h, c) = self.LSTM(input) # torch.Size([32, 200])
-        output = torch.cat((output[:, -1, :], output[:, 0, :]), dim=1)
+        output, (h, c) = self.LSTM(input)
+        output = torch.cat((output[:, -1, :], output[:, 0, :]), dim=1) # torch.Size([32, 1200])
+
         rating_output = F.relu(self.FC1_1(output))
+        rating_output = F.relu(self.FC1_2(rating_output))
+        rating_output = self.FC1_3(rating_output)
+
         category_output = F.relu(self.FC2_1(output))
-        category_output = self.FC2_2(category_output)
+        category_output = F.relu(self.FC2_2(category_output))
+        category_output = self.FC2_3(category_output)
+
         return rating_output.squeeze(), category_output.squeeze()
 
 
@@ -155,8 +162,10 @@ lossFunc = loss()
 ################## The following determines training options ###################
 ################################################################################
 
-trainValSplit = 0.7
-batchSize = 256 # 128 OR 256
+trainValSplit = 0.8
+batchSize = 128 # 128 OR 256
 epochs = 20 # 10 TO 20
 optimiser = toptim.Adam(net.parameters(), lr=0.001)
 loss_lambda = 0.65
+
+# 85.12 ==  0.8 256 20 0.001 0.65
