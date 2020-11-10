@@ -19,9 +19,11 @@ You may change this variable in the config.py file.
 You may only use GloVe 6B word vectors as found in the torchtext package.
 """
 
-# import torch
+import torch
+import string
 import torch.nn as tnn
 import torch.optim as toptim
+import torch.nn.functional as F
 from torchtext.vocab import GloVe
 # import numpy as np
 # import sklearn
@@ -39,11 +41,21 @@ def tokenise(sample):
 
     processed = sample.split()
 
-    return processed
+    number_to_word = {'0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five', '6': 'six',
+                      '7': 'seven', '8': 'eight', '9': 'nine'}
+    new_sample = []
+    for word in processed:
+        if word not in stopWords:
+            if word in number_to_word.keys():
+                new_sample.append(number_to_word.get(word))
+            else:
+                new_sample.append(word.lower().strip(string.punctuation))
+
+    return new_sample
 
 def preprocessing(sample):
     """
-    Called after tokenising but before numericalising.
+    Called after tokenising but before numericalising.S
     """
 
     return sample
@@ -55,8 +67,21 @@ def postprocessing(batch, vocab):
 
     return batch
 
-stopWords = {}
-wordVectors = GloVe(name='6B', dim=50)
+stopWords = {'ourselves', 'hers', 'between', 'yourself', 'but', 'again', 'there', 'about',
+             'once', 'during', 'out', 'very', 'having', 'with', 'they', 'own', 'an', 'be',
+             'some', 'for', 'do', 'its', 'yours', 'such', 'into', 'of', 'most', 'itself',
+             'other', 'off', 'is', 's', 'am', 'or', 'who', 'as', 'from', 'him', 'each',
+             'the', 'themselves', 'until', 'below', 'are', 'we', 'these', 'your', 'his',
+             'through', 'don', 'nor', 'me', 'were', 'her', 'more', 'himself', 'this', 'down',
+             'should', 'our', 'their', 'while', 'above', 'both', 'up', 'to', 'ours', 'had',
+             'she', 'all', 'no', 'when', 'at', 'any', 'before', 'them', 'same', 'and', 'been',
+             'have', 'in', 'will', 'on', 'does', 'yourselves', 'then', 'that', 'because', 'what',
+             'over', 'why', 'so', 'can', 'did', 'not', 'now', 'under', 'he', 'you', 'herself',
+             'has', 'just', 'where', 'too', 'only', 'myself', 'which', 'those', 'i', 'after',
+             'few', 'whom', 't', 'being', 'if', 'theirs', 'my', 'against', 'a', 'by', 'doing',
+             'it', 'how', 'further', 'was', 'here', 'than'}
+wordVectors_dim = 50
+wordVectors = GloVe(name='6B', dim=wordVectors_dim) # max 300 dim
 
 ################################################################################
 ####### The following determines the processing of label data (ratings) ########
@@ -71,6 +96,11 @@ def convertNetOutput(ratingOutput, categoryOutput):
     outputs a different representation convert the output here.
     """
 
+    # convert float to integer
+    ratingOutput = torch.argmax(torch.round(F.log_softmax(ratingOutput, dim=1)), dim=1)
+    categoryOutput = torch.argmax(torch.round(F.log_softmax(categoryOutput, dim=1)), dim=1)
+    print(ratingOutput)
+    print(categoryOutput)
     return ratingOutput, categoryOutput
 
 ################################################################################
@@ -88,9 +118,19 @@ class network(tnn.Module):
 
     def __init__(self):
         super(network, self).__init__()
+        self.LSTM = tnn.LSTM(wordVectors_dim, 50, num_layers=2, batch_first=True, bidirectional=True, dropout=0.5)
+        self.FC1_1 = tnn.Linear(200, 2)
+        self.FC2_1 = tnn.Linear(200, 100)
+        self.FC2_2 = tnn.Linear(100, 5)
 
     def forward(self, input, length):
-        pass
+        output, (h, c) = self.LSTM(input) # torch.Size([32, 200])
+        output = torch.cat((output[:, -1, :], output[:, 0, :]), dim=1)
+        rating_output = F.relu(self.FC1_1(output))
+        category_output = F.relu(self.FC2_1(output))
+        category_output = self.FC2_2(category_output)
+        return rating_output.squeeze(), category_output.squeeze()
+
 
 class loss(tnn.Module):
     """
@@ -102,7 +142,11 @@ class loss(tnn.Module):
         super(loss, self).__init__()
 
     def forward(self, ratingOutput, categoryOutput, ratingTarget, categoryTarget):
-        pass
+        rating_loss = F.cross_entropy(ratingOutput, ratingTarget)
+        category_loss = F.cross_entropy(categoryOutput, categoryTarget)
+        return (1 - loss_lambda) * rating_loss + loss_lambda * category_loss
+
+
 
 net = network()
 lossFunc = loss()
@@ -111,7 +155,8 @@ lossFunc = loss()
 ################## The following determines training options ###################
 ################################################################################
 
-trainValSplit = 0.8
-batchSize = 32
-epochs = 10
-optimiser = toptim.SGD(net.parameters(), lr=0.01)
+trainValSplit = 0.7
+batchSize = 256 # 128 OR 256
+epochs = 20 # 10 TO 20
+optimiser = toptim.Adam(net.parameters(), lr=0.001)
+loss_lambda = 0.65
