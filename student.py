@@ -163,7 +163,7 @@ lossFunc = loss()
 ################################################################################
 
 trainValSplit = 0.8
-batchSize = 128 # 128 OR 256
+batchSize = 256 # 128 OR 256
 epochs = 20 # 10 TO 20
 optimiser = toptim.Adam(net.parameters(), lr=0.001)
 loss_lambda = 0.65
