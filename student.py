@@ -25,6 +25,7 @@ import torch.nn as tnn
 import torch.optim as toptim
 import torch.nn.functional as F
 from torchtext.vocab import GloVe
+import re
 # import numpy as np
 # import sklearn
 
@@ -39,10 +40,13 @@ def tokenise(sample):
     Called before any processing of the text has occurred.
     """
 
+    remove_chars = '[0-9’!"#$%&\'()*+,-./:;<=>?@，。?★、…【】《》？“”‘’！[\\]^_`{|}~]+'
+    re.sub(remove_chars, '', sample)
     processed = sample.split()
 
     number_to_word = {'0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five', '6': 'six',
                       '7': 'seven', '8': 'eight', '9': 'nine'}
+
     new_sample = []
     for word in processed:
         if word not in stopWords:
@@ -50,6 +54,7 @@ def tokenise(sample):
                 new_sample.append(number_to_word.get(word))
             else:
                 new_sample.append(word.lower().strip(string.punctuation))
+
 
     return new_sample
 
@@ -162,7 +167,7 @@ lossFunc = loss()
 ################## The following determines training options ###################
 ################################################################################
 
-trainValSplit = 0.8
+trainValSplit = 0.85
 batchSize = 256 # 128 OR 256
 epochs = 20 # 10 TO 20
 optimiser = toptim.Adam(net.parameters(), lr=0.001)
