@@ -145,6 +145,7 @@ class network(tnn.Module):
         # num_layers = 2 will stacking two LSTMs together to form a stacked LSTM
         # dropout will help to avoid Overfitting
         self.LSTM = tnn.LSTM(wordVectors_dim, 300, num_layers=2, batch_first=True, bidirectional=True, dropout=0.5)
+        # define dropout to avoid overfitting
         # 3 Linear layers with ReLU
         self.FC1_1 = tnn.Linear(1200, 600)
         self.FC1_2 = tnn.Linear(600, 300)
@@ -162,11 +163,14 @@ class network(tnn.Module):
         # Linear 1: for rating output
         rating_output = F.relu(self.FC1_1(output))
         rating_output = F.relu(self.FC1_2(rating_output))
+        # F.dropout(rating_output, 0.2)
         rating_output = self.FC1_3(rating_output)
+
 
         # Linear 2: for category output
         category_output = F.relu(self.FC2_1(output))
         category_output = F.relu(self.FC2_2(category_output))
+        # F.dropout(category_output, 0.2)
         category_output = self.FC2_3(category_output)
 
         return rating_output.squeeze(), category_output.squeeze()
@@ -186,7 +190,7 @@ class loss(tnn.Module):
         rating_loss = F.cross_entropy(ratingOutput, ratingTarget)
         category_loss = F.cross_entropy(categoryOutput, categoryTarget)
         # apply lambda for weight of rating loss and category loss
-        return (1 - loss_lambda) * rating_loss + loss_lambda * category_loss
+        return rating_loss + loss_lambda * category_loss
 
 
 
@@ -199,6 +203,6 @@ lossFunc = loss()
 
 trainValSplit = 0.85
 batchSize = 256
-epochs = 20
-optimiser = toptim.Adam(net.parameters(), lr=0.001)
+epochs = 15
+optimiser = toptim.Adam(net.parameters(), lr=0.001, weight_decay=0.0005)
 loss_lambda = 0.65
